@@ -118,7 +118,33 @@ export class VsCodeWebviewProtocol {
           );
 
           let message = e.message;
-          if (e.cause) {
+          if (e.status === 401) {
+            vscode.window
+              .showErrorMessage(
+                message,
+                'Show Logs',
+                'Troubleshooting',
+                'Re-login',
+              )
+              .then((selection) => {
+                if (selection === 'Show Logs') {
+                  vscode.commands.executeCommand(
+                    'workbench.action.toggleDevTools',
+                  );
+                } else if (selection === 'Troubleshooting') {
+                  vscode.env.openExternal(
+                    vscode.Uri.parse('https://trypear.ai/troubleshooting'),
+                  );
+                } else if (selection === 'Re-login') {
+                  // Redirect to auth login URL
+                  vscode.env.openExternal(
+                    vscode.Uri.parse(
+                      'https://trypear.ai/signin?...llback=pearai://pearai.pearai/auth',
+                    ),
+                  );
+                }
+              });
+          } else if (e.cause) {
             if (e.cause.name === "ConnectTimeoutError") {
               message = `Connection timed out. If you expect it to take a long time to connect, you can increase the timeout in config.json by setting "requestOptions": { "timeout": 10000 }. You can find the full config reference here: https://trypear.ai/reference/config`;
             } else if (e.cause.code === "ECONNREFUSED") {
