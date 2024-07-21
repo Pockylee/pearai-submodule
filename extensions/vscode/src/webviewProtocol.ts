@@ -139,7 +139,7 @@ export class VsCodeWebviewProtocol {
                   // Redirect to auth login URL
                   vscode.env.openExternal(
                     vscode.Uri.parse(
-                      'https://trypear.ai/signin?...llback=pearai://pearai.pearai/auth',
+                      'https://trypear.ai/signin?callback=pearai://pearai.pearai/auth',
                     ),
                   );
                 }
