@@ -116,35 +116,10 @@ export class VsCodeWebviewProtocol {
             "Error handling webview message: " +
               JSON.stringify({ msg }, null, 2),
           );
+          const UNAUTHORIZED_ERROR_CODE = "401";
 
           let message = e.message;
-          if (e.status === 401) {
-            vscode.window
-              .showErrorMessage(
-                message,
-                'Show Logs',
-                'Troubleshooting',
-                'Re-login',
-              )
-              .then((selection) => {
-                if (selection === 'Show Logs') {
-                  vscode.commands.executeCommand(
-                    'workbench.action.toggleDevTools',
-                  );
-                } else if (selection === 'Troubleshooting') {
-                  vscode.env.openExternal(
-                    vscode.Uri.parse('https://trypear.ai/troubleshooting'),
-                  );
-                } else if (selection === 'Re-login') {
-                  // Redirect to auth login URL
-                  vscode.env.openExternal(
-                    vscode.Uri.parse(
-                      'https://trypear.ai/signin?callback=pearai://pearai.pearai/auth',
-                    ),
-                  );
-                }
-              });
-          } else if (e.cause) {
+          if (e.cause) {
             if (e.cause.name === "ConnectTimeoutError") {
               message = `Connection timed out. If you expect it to take a long time to connect, you can increase the timeout in config.json by setting "requestOptions": { "timeout": 10000 }. You can find the full config reference here: https://trypear.ai/reference/config`;
             } else if (e.cause.code === "ECONNREFUSED") {
@@ -153,8 +128,29 @@ export class VsCodeWebviewProtocol {
               message = `The request failed with "${e.cause.name}": ${e.cause.message}. If you're having trouble setting up Continue, please see the troubleshooting guide for help.`;
             }
           }
-
-          if (message.includes("https://proxy-server")) {
+          else if (message.includes(UNAUTHORIZED_ERROR_CODE)) {
+            vscode.window
+              .showErrorMessage(
+                message,
+                'Login To PearAI',
+                'Show Logs',
+              )
+              .then((selection) => {
+                if (selection === 'Login To PearAI') {
+                  // Redirect to auth login URL
+                  vscode.env.openExternal(
+                    vscode.Uri.parse(
+                      'https://trypear.ai/signin?callback=pearai://pearai.pearai/auth',
+                    ),
+                  );
+                } else if (selection === 'Show Logs') {
+                  vscode.commands.executeCommand(
+                    'workbench.action.toggleDevTools',
+                  );
+                }
+              });
+          }
+          else if (message.includes("https://proxy-server")) {
             message = message.split("\n").slice(1).join("\n").trim();
             try {
               message = JSON.parse(message).message ?? message;
